@@ -200,9 +200,9 @@ public class Graph {
         }
 
         String message = "Comparing two graphs:\nnumPeaks1: " + numPeaks1 + "\nnumPeaks2: " + numPeaks2 + "\n";
-        for (int i=0; i<numPeaks1; i++) message += (c1[i] == null ? "" : "+") + peaks1.get(i) + "; ";
+        for (int i=0; i<numPeaks1; i++) message += (c1[i] == null ? "" : "+") + graph1.points.get(peaks1.get(i)).value + "; ";
         message += "\n";
-        for (int i=0; i<numPeaks2; i++) message += (c2[i] == null ? "" : "+") + peaks2.get(i) + "; ";
+        for (int i=0; i<numPeaks2; i++) message += (c2[i] == null ? "" : "+") + graph2.points.get(peaks2.get(i)).value + "; ";
         message += "\nnumPeaksCompared: " + numPeaksCompared + "\nnumPeaksOk: " + numPeaksOk;
         message += "\n-----------------------------";
         Log.i("GRAPH", message);
