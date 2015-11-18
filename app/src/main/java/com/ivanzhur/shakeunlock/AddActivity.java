@@ -52,8 +52,8 @@ public class AddActivity extends Activity implements SensorEventListener {
         accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
         sensorManager.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_NORMAL);
 
-        savedVals = new ArrayList<>();
-        previousVals = new ArrayList<>();
+        //savedVals = new ArrayList<>();
+        //previousVals = new ArrayList<>();
         defaults = new ArrayList<>();
         points = new ArrayList<>();
 
@@ -76,7 +76,7 @@ public class AddActivity extends Activity implements SensorEventListener {
         graphView.getViewport().setMinX(0);
         graphView.getViewport().setMaxX(100);
 
-        series = new LineGraphSeries<>(Graph.generateDataForSeries(vals));
+        series = new LineGraphSeries<>(Graph.generateDataForSeries(points));
         series.setColor(Color.BLACK);
         //series.setDrawDataPoints(false);
         graphView.addSeries(series);
@@ -123,10 +123,10 @@ public class AddActivity extends Activity implements SensorEventListener {
             points.add(new GraphPoint(sum, x, y, z));
             if (points.size() > 100) points.remove(0);
 
-            savedVals.add(sum);
-            series.resetData(Graph.generateDataForSeries(savedVals));
+            //savedVals.add(sum);
+            series.resetData(Graph.generateDataForSeries(points));
 
-            if (savingDefault < 0) addNewLivePeaks();
+            //if (savingDefault < 0) addNewLivePeaks();
         }
     }
 
@@ -143,24 +143,25 @@ public class AddActivity extends Activity implements SensorEventListener {
             button.setText("Start");
 
             if (savingDefault >= 0){
-                defaults.add(new Graph(savedVals));
+                defaults.add(new Graph(points));
                 savingDefault++;
-                savedVals.clear();
+                //savedVals.clear();
+                points.clear();
 
                 if (savingDefault == 3){
                     savingDefault = -1;
                     saveDefaults();
 
                     graphView.removeAllSeries();
-                    graphView.addSeries(Graph.getSeries(defaults.get(0).values, Color.RED, false));
-                    graphView.addSeries(Graph.getSeries(defaults.get(1).values, Color.GREEN, false));
-                    graphView.addSeries(Graph.getSeries(defaults.get(2).values, Color.BLUE, false));
+                    graphView.addSeries(Graph.getSeries(defaults.get(0).points, Color.RED, false));
+                    graphView.addSeries(Graph.getSeries(defaults.get(1).points, Color.GREEN, false));
+                    graphView.addSeries(Graph.getSeries(defaults.get(2).points, Color.BLUE, false));
                     graphView.addSeries(series);
                     for (int i=0; i<3; i++){
                         String message = "Graph " + i + "\nnumPeaks: " + defaults.get(i).numPeaks + "\npeaks: ";
                         for (int j=0; j<defaults.get(i).numPeaks; j++) message += defaults.get(i).peaks.get(j) + "; ";
                         message += "\n";
-                        //Log.i("GRAPH", message);
+                        Log.i("GRAPH", message);
                     }
 
                     Graph.compareGraphs(defaults.get(0), defaults.get(1));
@@ -171,12 +172,12 @@ public class AddActivity extends Activity implements SensorEventListener {
             }
             else {
                 graphView.removeAllSeries();
-                graphView.addSeries(Graph.getSeries(savedVals, Color.RED, true));
-                graphView.addSeries(Graph.getSeries(previousVals, Color.GREEN, true));
+                //graphView.addSeries(Graph.getSeries(savedVals, Color.RED, true));
+                //graphView.addSeries(Graph.getSeries(previousVals, Color.GREEN, true));
                 graphView.addSeries(series);
 
-                previousVals = savedVals;
-                savedVals = new ArrayList<>();
+                //previousVals = savedVals;
+                //savedVals = new ArrayList<>();
                 buttonNew.setVisibility(View.VISIBLE);
             }
         }
@@ -205,7 +206,7 @@ public class AddActivity extends Activity implements SensorEventListener {
         bottomTextView.setVisibility(View.VISIBLE);
         button.setText("Stop");
     }
-
+/*
     private void addNewLivePeaks(){
         if (vals.size() < 3) return;
         int pos = vals.size()-2;
@@ -278,10 +279,10 @@ public class AddActivity extends Activity implements SensorEventListener {
             for (int i=0; i<numListsToRemove; i++) livePeaks.get(k).remove((int)listsToRemove.get(i)-i);
         }
     }
-
+*/
     private void saveDefaults(){
         for (int i=0; i<3; i++) {
-            MainActivity.editor.putString(DEFAULT[i], defaults.get(i).getJson());
+            MainActivity.editor.putString(DEFAULT[i], Graph.getJson(defaults.get(i)));
             MainActivity.editor.apply();
         }
     }

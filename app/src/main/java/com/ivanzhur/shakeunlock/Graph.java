@@ -107,20 +107,20 @@ public class Graph {
         return peaks;
     }
 
-
-    public static DataPoint[] generateDataForSeries(List<Double> values){
+    public static DataPoint[] generateDataForSeries(List<GraphPoint> values){
         if (values == null) return new DataPoint[0];
 
         int count = Math.min(100, values.size());
         DataPoint[] points = new DataPoint[count];
         for (int i=0; i<count; i++){
-            points[i] = new DataPoint(i, values.get(i));
+            points[i] = new DataPoint(i, values.get(i).value);
         }
 
         return points;
     }
 
-    public static LineGraphSeries<DataPoint> getSeries(List<Double> values, int color, boolean drawPoints){
+
+    public static LineGraphSeries<DataPoint> getSeries(List<GraphPoint> values, int color, boolean drawPoints){
         LineGraphSeries<DataPoint> series = new LineGraphSeries<>(generateDataForSeries(values));
         if (color != -1) series.setColor(color);
         series.setDrawDataPoints(drawPoints);
@@ -164,8 +164,8 @@ public class Graph {
         int numPeaks2 = graph2.numPeaks;
         if ((double)Math.abs(numPeaks1-numPeaks2)/Math.min(numPeaks1, numPeaks2) > MAX_NUM_PEAKS_DIFF_RATIO) return false;
 
-        List<Double> peaks1 = new ArrayList<>(graph1.peaks);
-        List<Double> peaks2 = new ArrayList<>(graph2.peaks);
+        List<Integer> peaks1 = new ArrayList<>(graph1.peaks);
+        List<Integer> peaks2 = new ArrayList<>(graph2.peaks);
 
         int numPeaksCompared = 0, numPeaksOk = 0;
         String[] c1 = new String[numPeaks1];
@@ -173,21 +173,22 @@ public class Graph {
 
         int i1 = 0, i2 = 0;
         while (i1 < numPeaks1 && i2 < numPeaks2){
-            if (peaks1.get(i1) > GRAVITY && peaks2.get(i2) < GRAVITY){
+            if (graph1.points.get(peaks1.get(i1)).value > GRAVITY && graph2.points.get(peaks2.get(i2)).value < GRAVITY){
+            //if (peaks1.get(i1) > GRAVITY && peaks2.get(i2) < GRAVITY){
                 int skip = 1;
-                while (i2 + skip < numPeaks2 && peaks2.get(i2 + skip) < GRAVITY) skip++;
+                while (i2 + skip < numPeaks2 && graph2.points.get(peaks2.get(i2 + skip)).value < GRAVITY) skip++;
                 if (skip > MAX_PEAKS_SKIP_NUM) return false;
                 i2 += skip;
             }
-            else if (peaks1.get(i1) < GRAVITY && peaks2.get(i2) > GRAVITY){
+            if (graph1.points.get(peaks1.get(i1)).value < GRAVITY && graph2.points.get(peaks2.get(i2)).value > GRAVITY){
                 int skip = 1;
-                while (i1 + skip < numPeaks1 && peaks1.get(i1 + skip) < GRAVITY) skip++;
+                while (i1 + skip < numPeaks1 && graph1.points.get(peaks1.get(i1 + skip)).value < GRAVITY) skip++;
                 if (skip > MAX_PEAKS_SKIP_NUM) return false;
                 i1 += skip;
             }
             else {
-                double peak1 = peaks1.get(i1);
-                double peak2 = peaks2.get(i2);
+                double peak1 = graph1.points.get(peaks1.get(i1)).value;
+                double peak2 = graph2.points.get(peaks2.get(i2)).value;
                 if (Math.abs(peak1 - peak2) <= MAX_PEAKS_DIFF) numPeaksOk++;
                 numPeaksCompared++;
 
