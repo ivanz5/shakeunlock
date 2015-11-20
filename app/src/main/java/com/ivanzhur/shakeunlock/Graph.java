@@ -28,6 +28,13 @@ public class Graph {
     static final double MIN_PEAKS_COMPARED_RATIO = 0.65;
     static final double MIN_PEAKS_OK_RATIO = 0.65;
 
+    public Graph(){
+        points = new ArrayList<>();
+        peaks = new ArrayList<>();
+        numPoints = 0;
+        numPeaks = 0;
+    }
+
     public Graph(List<GraphPoint> points){
         this.points = new ArrayList<>(points);
         peaks = getPeaks(points);
@@ -127,106 +134,94 @@ public class Graph {
         series.setDrawDataPoints(drawPoints);
         return series;
     }
+    
 
-    public static boolean compareGraphs(List<LivePeak> livePeaks, Graph defaultGraph){
-        int numPeaksCompared = livePeaks.size();
-        //int numPeaksOverall = numPeaksCompared;
-        int numPeaksOk = 0;
-
-        String message = "Comparing livePeaks with default:\nlivePeaks: ";
-        for (int i=0; i<numPeaksCompared; i++) message += livePeaks.get(i).value + "; ";
-        message += "\ndefault: ";
-        for (int i=0; i<defaultGraph.numPeaks; i++) message += defaultGraph.peaks.get(i) + "; ";
-        Log.i("GRAPH", message);
-
-        if (livePeaks.get(numPeaksCompared-1).skippedAfter == -1 || livePeaks.get(numPeaksCompared-1).skippedDefaults == -1)
-            return false;
-
-        Log.i("GRAPH", "---skips ok---");
-
-        for (int i=0; i<numPeaksCompared; i++){
-            if (livePeaks.get(i).comparedTo >= defaultGraph.numPeaks) continue; // костыль, убрать
-            if ( Math.abs(livePeaks.get(i).value - defaultGraph.peaks.get(livePeaks.get(i).comparedTo)) <= MAX_PEAKS_DIFF )
-                numPeaksOk++;
-            //numPeaksOverall += livePeaks.get(i).skippedAfter;
-            //numPeaksOverall += livePeaks.get(i).skippedDefaults;
-        }
-
-        message = "numPeaks: " + defaultGraph.peaks.size() + "\ncompared: " + numPeaksCompared + "\nOK: " + numPeaksOk +
-                "\nsimilar: " + graphsSimilar(defaultGraph.peaks.size(), numPeaksCompared, numPeaksOk);
-        Log.i("GRAPH", message);
-        Log.i("GRAPH", "----------------------------------");
-
-        return graphsSimilar(defaultGraph.peaks.size(), numPeaksCompared, numPeaksOk);
-    }
-
+    // Check if two graphs similar or not
     public static boolean compareGraphs(Graph graph1, Graph graph2){
         int numPeaks1 = graph1.numPeaks;
         int numPeaks2 = graph2.numPeaks;
+        // If size of graphs differs too much return false
         if ((double)Math.abs(numPeaks1-numPeaks2)/Math.min(numPeaks1, numPeaks2) > MAX_NUM_PEAKS_DIFF_RATIO) return false;
 
-        List<Integer> peaks1 = new ArrayList<>(graph1.peaks);
-        List<Integer> peaks2 = new ArrayList<>(graph2.peaks);
-
         int numPeaksCompared = 0, numPeaksOk = 0;
-        String[] c1 = new String[numPeaks1];
-        String[] c2 = new String[numPeaks2];
+        String[] c1 = new String[numPeaks1]; // For logs
+        String[] c2 = new String[numPeaks2]; // For logs
 
         // Create iterators to watch peaks of both graphs
-        int i1 = 0, i2 = 0;
-        Log.i("GRAPH", "MAX_P_D:" + MAX_PEAKS_DIFF);
+        int i1 = 0;
+        int i2 = 0;
 
         // Watch though peaks until the end of at least one graph (it's peaks) is not reached
         while (i1 < numPeaks1 && i2 < numPeaks2){
-            // Number of peaks to skip in both graphs
-            int skip1 = 0, skip2 = 0;
+            // Compare next points
+            GraphCompareResult result = compareNextPoints(graph1, graph2, i1, i2);
+            numPeaksCompared++;
+            if (result.equal) numPeaksOk++;
 
-            // Skip peaks in graph1 until there is no peak equal to current in graph2, there are peaks to skip and skipped no more than MAX
-            while (i1 + skip1 < graph1.numPeaks && !GraphPoint.peaksEqual(graph1, graph2, i1 + skip1, i2) && skip1 <= MAX_PEAKS_SKIP_NUM) skip1++;
+            // Move iterator to new next points
+            i1 += result.skipFirst + 1;
+            i2 += result.skipSecond + 1;
 
-            // If skipped more than MAX peaks in graph1 OR the end of graph1 peaks reached
-            if (skip1 > MAX_PEAKS_SKIP_NUM || i1 + skip1 >= graph1.numPeaks){
-                skip1 = 0;
-
-                // Skip peaks in graph2 by the same rule as in graph1
-                while (i2 + skip2 < graph2.numPeaks && !GraphPoint.peaksEqual(graph1, graph2, i1, i2 + skip2) && skip2 <= MAX_PEAKS_SKIP_NUM) skip2++;
-
-                // If skipped more than MAX in both graph1 and graph2 OR the end of graph2 peaks reached
-                // skip1=skip2=0
-                if (skip2 > MAX_PEAKS_SKIP_NUM || i2 + skip2 >= graph2.numPeaks)
-                    skip2 = 0;
-                else
-                    i2 += skip2; // Move iterator of graph2 to match compared peak
+            // For logs
+            if (result.equal){
+                c1[i1-1] = "+";
+                c2[i2-1] = "+";
             }
-            // If skipped no more than MAX peaks in graph1
-            else
-                i1 += skip1; // Move iterator of graph1 to match compared peak
-
-            // If peaks equal after skipping
-            if (GraphPoint.peaksEqual(graph1, graph2, i1, i2)){
-                numPeaksOk++; // Increase number of equal peaks by 1
-                c1[i1] = "+"; // Just for logs
-                c2[i2] = "+"; // Just for logs
-
-            }
-            numPeaksCompared++; // Increase number of compared peaks by 1
-
-            // Move iterators of both graphs to next peaks
-            i1++;
-            i2++;
         }
 
+        // Logs
         String message = "Comparing two graphs:\nnumPeaks1: " + numPeaks1 + "\nnumPeaks2: " + numPeaks2 + "\n";
-        for (int i=0; i<numPeaks1; i++) message += (c1[i] == null ? "" : "+") + graph1.points.get(peaks1.get(i)).value + "; ";
+        for (int i=0; i<numPeaks1; i++) message += (c1[i] == null ? "" : "+") + graph1.points.get(graph1.peaks.get(i)).value + "; ";
         message += "\n";
-        for (int i=0; i<numPeaks2; i++) message += (c2[i] == null ? "" : "+") + graph2.points.get(peaks2.get(i)).value + "; ";
+        for (int i=0; i<numPeaks2; i++) message += (c2[i] == null ? "" : "+") + graph2.points.get(graph2.peaks.get(i)).value + "; ";
         message += "\nnumPeaksCompared: " + numPeaksCompared + "\nnumPeaksOk: " + numPeaksOk;
+        message += "\nGraphs similar: " + graphsSimilar(Math.min(numPeaks1, numPeaks2), numPeaksCompared, numPeaksOk);
         message += "\n-----------------------------";
         Log.i("GRAPH", message);
 
         return graphsSimilar(Math.min(numPeaks1, numPeaks2), numPeaksCompared, numPeaksOk);
     }
 
+    // Check if points (peaks) of two graphs 'equal', it is possible to skip some points due to noise in graphs
+    public static GraphCompareResult compareNextPoints(Graph graph1, Graph graph2, int startPoint1, int startPoint2){
+        int numPeaks1 = graph1.numPeaks;
+        int numPeaks2 = graph2.numPeaks;
+        // If size of graphs differs too much return false
+        if ((double)Math.abs(numPeaks1-numPeaks2)/Math.min(numPeaks1, numPeaks2) > MAX_NUM_PEAKS_DIFF_RATIO)
+            return new GraphCompareResult(false, 0, 0);
+
+        // Number of peaks to skip in both graphs
+        int skip1 = 0;
+        int skip2 = 0;
+
+        // Skip peaks in graph1 until there is no peak equal to current in graph2, there are peaks to skip and skipped no more than MAX
+        while (startPoint1 + skip1 < graph1.numPeaks
+                && !GraphPoint.peaksEqual(graph1, graph2, startPoint1 + skip1, startPoint2)
+                && skip1 <= MAX_PEAKS_SKIP_NUM) skip1++;
+
+        // If skipped more than MAX peaks in graph1 OR the end of graph1 peaks reached
+        if (skip1 > MAX_PEAKS_SKIP_NUM || startPoint1 + skip1 >= graph1.numPeaks){
+            skip1 = 0;
+
+            // Skip peaks in graph2 by the same rule as in graph1
+            while (startPoint2 + skip2 < graph2.numPeaks
+                    && !GraphPoint.peaksEqual(graph1, graph2, startPoint1, startPoint2 + skip2)
+                    && skip2 <= MAX_PEAKS_SKIP_NUM) skip2++;
+
+            // If skipped more than MAX in both graph1 and graph2 OR the end of graph2 peaks reached
+            // skip1=skip2=0
+            if (skip2 > MAX_PEAKS_SKIP_NUM || startPoint2 + skip2 >= graph2.numPeaks)
+                skip2 = 0;
+        }
+
+        // If peaks equal after skipping return true and number of points to skip, if else return false
+        if (GraphPoint.peaksEqual(graph1, graph2, startPoint1 + skip1, startPoint2 + skip2))
+            return new GraphCompareResult(true, skip1, skip2);
+        else
+            return new GraphCompareResult(false, 0, 0);
+    }
+
+    // Check if graphs similar by relations between number of peaks, compared peaks and peaks considered similar
     public static boolean graphsSimilar(int numPeaks, int numPeaksCompared, int numPeaksOk){
         return ((double)numPeaksCompared/numPeaks >= MIN_PEAKS_COMPARED_RATIO
                 && (double)numPeaksOk/numPeaksCompared >= MIN_PEAKS_OK_RATIO);

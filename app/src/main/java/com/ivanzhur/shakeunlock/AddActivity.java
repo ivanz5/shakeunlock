@@ -38,7 +38,8 @@ public class AddActivity extends Activity implements SensorEventListener {
     int savingDefault = -1;
 
     List<Graph> defaults;
-    List< List<List<LivePeak>> > livePeaks;
+    //List< List<List<LivePeak>> > livePeaks;
+    List<List<LivePeak>>[] livePeaks;
 
     final String DEFAULT[] = {"GRAPH_DEFAULT_1", "GRAPH_DEFAULT_2", "GRAPH_DEFAULT_3"};
     final int COLOR[] = {Color.RED, Color.GREEN, Color.BLUE};
@@ -57,10 +58,11 @@ public class AddActivity extends Activity implements SensorEventListener {
         defaults = new ArrayList<>();
         points = new ArrayList<>();
 
-        livePeaks = new ArrayList<>();
+        livePeaks = new ArrayList[3];
         for (int i=0; i<3; i++) {
-            List< List<LivePeak> > list = new ArrayList<>();
-            livePeaks.add(list);
+            //List< List<LivePeak> > list = new ArrayList<>();
+            //livePeaks.add(list);
+            livePeaks[i] = new ArrayList<>();
         }
 
         graphView = (GraphView)findViewById(R.id.graph);
@@ -189,10 +191,9 @@ public class AddActivity extends Activity implements SensorEventListener {
             button.setText("Stop");
 
 
-            livePeaks = new ArrayList<>();
+            //livePeaks = new ArrayList<>();
             for (int i=0; i<3; i++) {
-                List< List<LivePeak> > list = new ArrayList<>();
-                livePeaks.add(list);
+                livePeaks[i].clear();
             }
         }
     }
@@ -205,6 +206,10 @@ public class AddActivity extends Activity implements SensorEventListener {
         buttonNew.setVisibility(View.GONE);
         bottomTextView.setVisibility(View.VISIBLE);
         button.setText("Stop");
+    }
+
+    private void updateLivePeaks(){
+
     }
 /*
     private void addNewLivePeaks(){
