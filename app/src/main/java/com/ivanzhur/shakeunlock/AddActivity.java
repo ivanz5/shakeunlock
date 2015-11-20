@@ -159,7 +159,7 @@ public class AddActivity extends Activity implements SensorEventListener {
                     graphView.addSeries(series);
                     for (int i=0; i<3; i++){
                         String message = "Graph " + i + "\nnumPeaks: " + defaults.get(i).numPeaks + "\npeaks: ";
-                        for (int j=0; j<defaults.get(i).numPeaks; j++) message += defaults.get(i).peaks.get(j) + "; ";
+                        for (int j=0; j<defaults.get(i).numPeaks; j++) message += defaults.get(i).points.get(defaults.get(i).peaks.get(j)) + "; ";
                         message += "\n";
                         Log.i("GRAPH", message);
                     }

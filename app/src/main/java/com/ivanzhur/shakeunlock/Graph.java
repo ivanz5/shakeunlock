@@ -1,6 +1,7 @@
 package com.ivanzhur.shakeunlock;
 
 import android.util.Log;
+import android.widget.Toast;
 
 import com.jjoe64.graphview.series.DataPoint;
 import com.jjoe64.graphview.series.LineGraphSeries;
@@ -171,32 +172,48 @@ public class Graph {
         String[] c1 = new String[numPeaks1];
         String[] c2 = new String[numPeaks2];
 
+        // Create iterators to watch peaks of both graphs
         int i1 = 0, i2 = 0;
-        while (i1 < numPeaks1 && i2 < numPeaks2){
-            if (graph1.points.get(peaks1.get(i1)).value > GRAVITY && graph2.points.get(peaks2.get(i2)).value < GRAVITY){
-            //if (peaks1.get(i1) > GRAVITY && peaks2.get(i2) < GRAVITY){
-                int skip = 1;
-                while (i2 + skip < numPeaks2 && graph2.points.get(peaks2.get(i2 + skip)).value < GRAVITY) skip++;
-                if (skip > MAX_PEAKS_SKIP_NUM) return false;
-                i2 += skip;
-            }
-            if (graph1.points.get(peaks1.get(i1)).value < GRAVITY && graph2.points.get(peaks2.get(i2)).value > GRAVITY){
-                int skip = 1;
-                while (i1 + skip < numPeaks1 && graph1.points.get(peaks1.get(i1 + skip)).value < GRAVITY) skip++;
-                if (skip > MAX_PEAKS_SKIP_NUM) return false;
-                i1 += skip;
-            }
-            else {
-                double peak1 = graph1.points.get(peaks1.get(i1)).value;
-                double peak2 = graph2.points.get(peaks2.get(i2)).value;
-                if (Math.abs(peak1 - peak2) <= MAX_PEAKS_DIFF) numPeaksOk++;
-                numPeaksCompared++;
+        Log.i("GRAPH", "MAX_P_D:" + MAX_PEAKS_DIFF);
 
-                c1[i1] = "+";
-                c2[i2] = "+";
-                i1++;
-                i2++;
+        // Watch though peaks until the end of at least one graph (it's peaks) is not reached
+        while (i1 < numPeaks1 && i2 < numPeaks2){
+            // Number of peaks to skip in both graphs
+            int skip1 = 0, skip2 = 0;
+
+            // Skip peaks in graph1 until there is no peak equal to current in graph2, there are peaks to skip and skipped no more than MAX
+            while (i1 + skip1 < graph1.numPeaks && !GraphPoint.peaksEqual(graph1, graph2, i1 + skip1, i2) && skip1 <= MAX_PEAKS_SKIP_NUM) skip1++;
+
+            // If skipped more than MAX peaks in graph1 OR the end of graph1 peaks reached
+            if (skip1 > MAX_PEAKS_SKIP_NUM || i1 + skip1 >= graph1.numPeaks){
+                skip1 = 0;
+
+                // Skip peaks in graph2 by the same rule as in graph1
+                while (i2 + skip2 < graph2.numPeaks && !GraphPoint.peaksEqual(graph1, graph2, i1, i2 + skip2) && skip2 <= MAX_PEAKS_SKIP_NUM) skip2++;
+
+                // If skipped more than MAX in both graph1 and graph2 OR the end of graph2 peaks reached
+                // skip1=skip2=0
+                if (skip2 > MAX_PEAKS_SKIP_NUM || i2 + skip2 >= graph2.numPeaks)
+                    skip2 = 0;
+                else
+                    i2 += skip2; // Move iterator of graph2 to match compared peak
             }
+            // If skipped no more than MAX peaks in graph1
+            else
+                i1 += skip1; // Move iterator of graph1 to match compared peak
+
+            // If peaks equal after skipping
+            if (GraphPoint.peaksEqual(graph1, graph2, i1, i2)){
+                numPeaksOk++; // Increase number of equal peaks by 1
+                c1[i1] = "+"; // Just for logs
+                c2[i2] = "+"; // Just for logs
+
+            }
+            numPeaksCompared++; // Increase number of compared peaks by 1
+
+            // Move iterators of both graphs to next peaks
+            i1++;
+            i2++;
         }
 
         String message = "Comparing two graphs:\nnumPeaks1: " + numPeaks1 + "\nnumPeaks2: " + numPeaks2 + "\n";
@@ -213,15 +230,5 @@ public class Graph {
     public static boolean graphsSimilar(int numPeaks, int numPeaksCompared, int numPeaksOk){
         return ((double)numPeaksCompared/numPeaks >= MIN_PEAKS_COMPARED_RATIO
                 && (double)numPeaksOk/numPeaksCompared >= MIN_PEAKS_OK_RATIO);
-    }
-
-
-
-    public static int peaksComparable(double peak1, double peak2){
-        if (peak1 > GRAVITY && peak2 > GRAVITY || peak1 < GRAVITY && peak2 < GRAVITY)
-            return 0;
-        if (peak1 > GRAVITY)
-            return 1; // Returns 1 if peak1 is ABOVE gravity and peak2 is below
-        return -1; // Returns -1 if peak1 is BELOW gravity and peak2 is above
     }
 }
