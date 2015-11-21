@@ -15,7 +15,6 @@ import java.util.List;
 
 public class Graph {
     public int numPoints, numPeaks; // check if public needed
-    //public List<Double> values, peaks;
     public List<GraphPoint> points;
     public List<Integer> peaks;
 
@@ -28,6 +27,7 @@ public class Graph {
     static final double MIN_PEAKS_COMPARED_RATIO = 0.65;
     static final double MIN_PEAKS_OK_RATIO = 0.65;
 
+    // Create empty graph
     public Graph(){
         points = new ArrayList<>();
         peaks = new ArrayList<>();
@@ -35,6 +35,7 @@ public class Graph {
         numPeaks = 0;
     }
 
+    // Create graph from array of points
     public Graph(List<GraphPoint> points){
         this.points = new ArrayList<>(points);
         peaks = getPeaks(points);
@@ -42,6 +43,7 @@ public class Graph {
         numPeaks = peaks.size();
     }
 
+    // Create graph from JSON string
     public Graph(String json){
         points = new ArrayList<>();
         peaks = new ArrayList<>();
@@ -72,6 +74,7 @@ public class Graph {
         }
     }
 
+    // Convert graph to JSON string
     public static String getJson(Graph graph){
         try{
             JSONObject root = new JSONObject();
@@ -102,6 +105,7 @@ public class Graph {
         }
     }
 
+    // Get peaks of the graph (full acceleration including all axes)
     public static List<Integer> getPeaks(List<GraphPoint> points){
         int size = points.size();
         List<Integer> peaks = new ArrayList<>();
@@ -115,6 +119,7 @@ public class Graph {
         return peaks;
     }
 
+    // Generate values of list to show in GraphView
     public static DataPoint[] generateDataForSeries(List<GraphPoint> values){
         if (values == null) return new DataPoint[0];
 
@@ -127,14 +132,13 @@ public class Graph {
         return points;
     }
 
-
+    // Get values of list to show in GraphView with 'color' and 'drawPoints' options
     public static LineGraphSeries<DataPoint> getSeries(List<GraphPoint> values, int color, boolean drawPoints){
         LineGraphSeries<DataPoint> series = new LineGraphSeries<>(generateDataForSeries(values));
         if (color != -1) series.setColor(color);
         series.setDrawDataPoints(drawPoints);
         return series;
     }
-    
 
     // Check if two graphs similar or not
     public static boolean compareGraphs(Graph graph1, Graph graph2){
@@ -215,10 +219,16 @@ public class Graph {
         }
 
         // If peaks equal after skipping return true and number of points to skip, if else return false
-        if (GraphPoint.peaksEqual(graph1, graph2, startPoint1 + skip1, startPoint2 + skip2))
-            return new GraphCompareResult(true, skip1, skip2);
-        else
+        try {
+            if (GraphPoint.peaksEqual(graph1, graph2, startPoint1 + skip1, startPoint2 + skip2))
+                return new GraphCompareResult(true, skip1, skip2);
+            else
+                return new GraphCompareResult(false, 0, 0);
+        }
+        catch (Exception ex){
+            Log.i("GRAPH", "Error.\nstartPoint1=" + startPoint1 + ", skip1=" + skip1 + "\nstartPoint2=" + startPoint2 + ", skip2=" + skip2);
             return new GraphCompareResult(false, 0, 0);
+        }
     }
 
     // Check if graphs similar by relations between number of peaks, compared peaks and peaks considered similar
