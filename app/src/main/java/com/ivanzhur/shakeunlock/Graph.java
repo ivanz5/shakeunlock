@@ -26,6 +26,7 @@ public class Graph {
     static final double MAX_PEAKS_DIFF = 3.0;
     static final double MIN_PEAKS_COMPARED_RATIO = 0.65;
     static final double MIN_PEAKS_OK_RATIO = 0.65;
+    static final long MAX_TIME_OK_DIFF = 1000;
 
     // Create empty graph
     public Graph(){

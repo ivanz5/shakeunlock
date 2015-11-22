@@ -6,10 +6,10 @@ import java.util.List;
 public class LiveGraph extends Graph {
     Graph mainGraph;
 
-    public static final int NEED_MORE_POINTS = -1;
-    public static final int GRAPHS_NOT_EQUAL = 0;
-    public static final int GRAPHS_EQUAL = 1;
-    public static final int IN_PROGRESS = 2;
+    static final int NEED_MORE_POINTS = -1;
+    static final int GRAPHS_NOT_EQUAL = 0;
+    static final int GRAPHS_EQUAL = 1;
+    static final int IN_PROGRESS = 2;
 
     public LiveGraph(Graph graphToCompareWith){
         super();

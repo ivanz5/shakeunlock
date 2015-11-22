@@ -38,6 +38,7 @@ public class AddActivity extends Activity implements SensorEventListener {
 
     List<Graph> defaults;
     List<List<LiveGraph>> liveGraphs;
+    long timeGraphOk[];
 
     final String DEFAULT[] = {"GRAPH_DEFAULT_1", "GRAPH_DEFAULT_2", "GRAPH_DEFAULT_3"};
     final int COLOR[] = {Color.RED, Color.GREEN, Color.BLUE};
@@ -57,6 +58,7 @@ public class AddActivity extends Activity implements SensorEventListener {
         points = new ArrayList<>();
 
         liveGraphs = new ArrayList<>(); // Maybe move to where the (defaults.size > 0) ?
+        timeGraphOk = new long[3];
 
         graphView = (GraphView)findViewById(R.id.graph);
         button = (Button)findViewById(R.id.button1);
@@ -199,33 +201,38 @@ public class AddActivity extends Activity implements SensorEventListener {
     }
 
     private void updateLiveGraphs(GraphPoint point){
-        if (liveGraphs.get(0).size() < 1)
-            liveGraphs.get(0).add(new LiveGraph(defaults.get(0)));
-
-        int result0 = liveGraphs.get(0).get(0).addPoint(point);
-        Log.i("GRAPH", result0 + "  peaks: " + liveGraphs.get(0).get(0).numPeaks);
-
-
+        // Do all for 3 default graphs
         for (int i=0; i<3; i++){
             // Add new LiveGraph to start watching from current point
             if (Math.abs(point.value - Graph.GRAVITY) >= Graph.START_THRESHOLD)
                 liveGraphs.get(i).add(new LiveGraph(defaults.get(i)));
 
-            //Log.i("GRAPH", "Updating... " + liveGraphs.get(i).size());
+            // Iterate trough all LiveGraphs and compare them to default
             int j = 0;
             while (j < liveGraphs.get(i).size()){
+                // Add new point to LiveGraph and compare it to default graph
                 int result = liveGraphs.get(i).get(j).addPoint(point);
+
                 if (result == LiveGraph.GRAPHS_EQUAL || result == LiveGraph.GRAPHS_NOT_EQUAL){
-                    Log.i("GRAPH", result + "");
+                    Log.i("GRAPH", result + "  peaks: " + liveGraphs.get(0).get(0).numPeaks); // Logs, 80% unnecessary
+                    // If LiveGraph isn't equal to it's default remove it from 'watch list'
                     liveGraphs.get(i).remove(j);
                     j--;
-                    if (result == LiveGraph.GRAPHS_EQUAL)
-                        onButtonClick(null);
+
+                    // If equal check if others equal and if yes, stop monitoring, success
+                    // If no, continue monitoring
+                    if (result == LiveGraph.GRAPHS_EQUAL) {
+                        timeGraphOk[i] = System.currentTimeMillis();
+                        boolean allOk = true;
+                        for (long time : timeGraphOk)
+                            if (timeGraphOk[i] - time > Graph.MAX_TIME_OK_DIFF) allOk = false;
+
+                        if (allOk && isSaving) onButtonClick(null);
+                    }
                 }
 
                 j++;
             }
-
         }
     }
 
