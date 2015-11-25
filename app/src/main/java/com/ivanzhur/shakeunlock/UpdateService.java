@@ -28,6 +28,7 @@ public class UpdateService extends Service {
     long timeGraphOk[];
     boolean working;
     SensorEventListener listener;
+    long lastUpdateTime;
 
     @Override
     public void onCreate(){
@@ -43,10 +44,13 @@ public class UpdateService extends Service {
         sensorManager = (SensorManager)getSystemService(Context.SENSOR_SERVICE);
         accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
 
+        lastUpdateTime = 0;
         timeGraphOk = new long[3];
         liveGraphs = new ArrayList<>();
         loadDefaults();
-        if (defaults.size() > 0) liveGraphs.add(new ArrayList<LiveGraph>());
+        if (defaults.size() > 0)
+            for (int i = 0; i < 3; i++)
+                liveGraphs.add(new ArrayList<LiveGraph>());
         working = false;
     }
 
@@ -59,6 +63,9 @@ public class UpdateService extends Service {
         listener = new SensorEventListener() {
             @Override
             public void onSensorChanged(SensorEvent sensorEvent) {
+                if (System.currentTimeMillis() - lastUpdateTime < 25) return; // FIXME: 25/11/2015 change 25 with constant variable
+                lastUpdateTime = System.currentTimeMillis();
+
                 Log.i(TAG, "sensor changed");
                 Sensor sensor = sensorEvent.sensor;
                 if (sensor.getType() != Sensor.TYPE_ACCELEROMETER || !working) return;
@@ -67,8 +74,7 @@ public class UpdateService extends Service {
                 float y = sensorEvent.values[1];
                 float z = sensorEvent.values[2];
                 double sum = Math.sqrt(x * x + y * y + z * z);
-                //updateLiveGraphs(new GraphPoint(sum, x, y, z));
-                //temp();
+                updateLiveGraphs(new GraphPoint(sum, x, y, z));
             }
 
             @Override
@@ -93,10 +99,6 @@ public class UpdateService extends Service {
     @Override
     public IBinder onBind(Intent intent) {
         return null;
-    }
-
-    private void temp(){
-        Log.i(TAG, "test");
     }
 
     private void updateLiveGraphs(GraphPoint point){
@@ -149,5 +151,6 @@ public class UpdateService extends Service {
         Log.i(TAG, "Great! Pattern recognized!");
         working = false;
         sensorManager.unregisterListener(listener);
+        for (List<LiveGraph> g : liveGraphs) g.clear();
     }
 }

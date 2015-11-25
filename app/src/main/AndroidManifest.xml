@@ -28,7 +28,6 @@
             android:theme="@style/AppTheme.NoActionBar" >
         </activity>
 
-        <service android:name=".MonitorService"/>
         <service android:name=".UpdateService"/>
 
     </application>
