@@ -40,7 +40,6 @@ public class AddActivity extends Activity implements SensorEventListener {
     List<List<LiveGraph>> liveGraphs;
     long timeGraphOk[];
 
-    final String DEFAULT[] = {"GRAPH_DEFAULT_1", "GRAPH_DEFAULT_2", "GRAPH_DEFAULT_3"};
     final int COLOR[] = {Color.RED, Color.GREEN, Color.BLUE};
 
     @Override
@@ -79,7 +78,7 @@ public class AddActivity extends Activity implements SensorEventListener {
         graphView.addSeries(series);
 
         loadDefaults();
-        if (defaults.size() > 0) {
+        if (defaults.size() > 0) { // What with liveGraphs if == 0?
             Graph.compareGraphs(defaults.get(0), defaults.get(1));
             Graph.compareGraphs(defaults.get(0), defaults.get(2));
             Graph.compareGraphs(defaults.get(1), defaults.get(2));
@@ -238,7 +237,7 @@ public class AddActivity extends Activity implements SensorEventListener {
 
     private void saveDefaults(){
         for (int i=0; i<3; i++) {
-            MainActivity.editor.putString(DEFAULT[i], Graph.getJson(defaults.get(i)));
+            MainActivity.editor.putString(MainActivity.DEFAULT[i], Graph.getJson(defaults.get(i)));
             MainActivity.editor.apply();
         }
     }
@@ -247,7 +246,7 @@ public class AddActivity extends Activity implements SensorEventListener {
         defaults = new ArrayList<>();
 
         for (int i=0; i<3; i++) {
-            String json = MainActivity.preferences.getString(DEFAULT[i], "");
+            String json = MainActivity.preferences.getString(MainActivity.DEFAULT[i], "");
             if (!json.isEmpty()) // temporary, REMOVE WHEN REALIZE SAVING NORMALLY
             defaults.add(new Graph(json));
         }

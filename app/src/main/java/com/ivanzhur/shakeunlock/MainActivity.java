@@ -1,13 +1,19 @@
 package com.ivanzhur.shakeunlock;
 
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
+import android.os.PowerManager;
+import android.os.SystemClock;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
@@ -34,6 +40,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     static final String NAME_PREFERENCES = "com.ivanzhur.shakeunlock.sharedpreferences";
     static SharedPreferences preferences;
     static SharedPreferences.Editor editor;
+    static final String DEFAULT[] = {"GRAPH_DEFAULT_1", "GRAPH_DEFAULT_2", "GRAPH_DEFAULT_3"};
+
+    final String TAG = "WAKE_TEST";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,28 +65,33 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                /*Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();*/
                 Intent intent = new Intent(getApplicationContext(), AddActivity.class);
                 startActivity(intent);
             }
         });
-
-        //test();
     }
 
+    Runnable runnable = new Runnable() {
+        @Override
+        public void run() {
+            Log.i("POWER", "Received success");
+        }
+    };
 
-
-    public void test(){
-        List<Double> list = new ArrayList<>();
-        //list.add(1.0);
-        test2(list);
-        Toast.makeText(this, list.get(0) + "", Toast.LENGTH_SHORT).show();
+    @Override
+    protected void onResume(){
+        super.onResume();
+        /*IntentFilter filter = new IntentFilter(Intent.ACTION_SCREEN_ON);
+        BroadcastReceiver receiver = new ScreenOnReceiver();
+        registerReceiver(receiver, filter);
+        Log.i(TAG, "ScreenOnReceiver registered");*/
+        Intent service = new Intent(this, UpdateService.class);
+        startService(service);
     }
 
-    public void test2(List<Double> l){
-        //l = new ArrayList<>();
-        l.add(2.0);
+    @Override
+    protected void onDestroy(){
+        super.onDestroy();
     }
 
     @Override
