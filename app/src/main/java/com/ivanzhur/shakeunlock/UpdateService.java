@@ -1,5 +1,7 @@
 package com.ivanzhur.shakeunlock;
 
+import android.app.Activity;
+import android.app.KeyguardManager;
 import android.app.Service;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -10,7 +12,10 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.os.Handler;
 import android.os.IBinder;
+import android.os.PowerManager;
+import android.os.SystemClock;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
@@ -20,6 +25,7 @@ import java.util.List;
 public class UpdateService extends Service {
 
     final String TAG = "WAKE_TEST";
+    final long MAX_SENSOR_WATCH_TIME = 10000;
     SharedPreferences preferences;
     SensorManager sensorManager;
     Sensor accelerometer;
@@ -28,14 +34,16 @@ public class UpdateService extends Service {
     long timeGraphOk[];
     boolean working;
     SensorEventListener listener;
-    long lastUpdateTime;
+    long lastUpdateTime, startTime;
+
+    PowerManager.WakeLock wl;
 
     @Override
     public void onCreate(){
         super.onCreate();
 
-        IntentFilter filter = new IntentFilter(Intent.ACTION_SCREEN_ON);
-        //filter.addAction(Intent.ACTION_SCREEN_OFF);
+        IntentFilter filter = new IntentFilter(Intent.ACTION_SCREEN_OFF);
+        //filter.addAction(Intent.ACTION_SCREEN_ON);
         BroadcastReceiver receiver = new ScreenOnReceiver();
         registerReceiver(receiver, filter);
         Log.i(TAG, "ScreenOnReceiver registered from service");
@@ -65,6 +73,10 @@ public class UpdateService extends Service {
             public void onSensorChanged(SensorEvent sensorEvent) {
                 if (System.currentTimeMillis() - lastUpdateTime < 25) return; // FIXME: 25/11/2015 change 25 with constant variable
                 lastUpdateTime = System.currentTimeMillis();
+                if (lastUpdateTime - startTime > MAX_SENSOR_WATCH_TIME){
+                    patternTimeout();
+                    return;
+                }
 
                 Log.i(TAG, "sensor changed");
                 Sensor sensor = sensorEvent.sensor;
@@ -83,17 +95,18 @@ public class UpdateService extends Service {
             }
         };
         sensorManager.registerListener(listener, accelerometer, SensorManager.SENSOR_DELAY_NORMAL);
+        startTime = System.currentTimeMillis();
 
         Log.i(TAG, "Screen ON");
         return START_STICKY;
     }
 
-    /*@Override
+    @Override
     public void onDestroy(){
         super.onDestroy();
-        sensorManager.unregisterListener(this);
+        sensorManager.unregisterListener(listener);
         Log.d(TAG, "onDestroy() called with: " + "");
-    }*/
+    }
 
     @Nullable
     @Override
@@ -149,6 +162,22 @@ public class UpdateService extends Service {
 
     private void patternRecognized(){
         Log.i(TAG, "Great! Pattern recognized!");
+        working = false;
+        sensorManager.unregisterListener(listener);
+        for (List<LiveGraph> g : liveGraphs) g.clear();
+
+        turnScreenOn();
+    }
+
+    private void turnScreenOn(){
+        PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
+        wl = pm.newWakeLock(PowerManager.ACQUIRE_CAUSES_WAKEUP | PowerManager.FULL_WAKE_LOCK, "Unlock screen by shake");
+        wl.acquire();
+        wl.release();
+    }
+
+    private void patternTimeout(){
+        Log.i(TAG, "Timeout!");
         working = false;
         sensorManager.unregisterListener(listener);
         for (List<LiveGraph> g : liveGraphs) g.clear();
