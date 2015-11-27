@@ -36,8 +36,6 @@ public class UpdateService extends Service {
     SensorEventListener listener;
     long lastUpdateTime, startTime;
 
-    PowerManager.WakeLock wl;
-
     @Override
     public void onCreate(){
         super.onCreate();
@@ -65,7 +63,7 @@ public class UpdateService extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId){
         Log.d(TAG, "onStartCommand() called with: " + "intent = [" + intent + "], flags = [" + flags + "], startId = [" + startId + "]");
-        if (intent == null || !intent.getBooleanExtra("screenOn", false)) return START_STICKY;
+        if (intent == null || !intent.getBooleanExtra("screenOff", false)) return START_STICKY;
 
         working = true;
         listener = new SensorEventListener() {
@@ -97,7 +95,7 @@ public class UpdateService extends Service {
         sensorManager.registerListener(listener, accelerometer, SensorManager.SENSOR_DELAY_NORMAL);
         startTime = System.currentTimeMillis();
 
-        Log.i(TAG, "Screen ON");
+        Log.i(TAG, "Screen OFF");
         return START_STICKY;
     }
 
@@ -171,7 +169,7 @@ public class UpdateService extends Service {
 
     private void turnScreenOn(){
         PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
-        wl = pm.newWakeLock(PowerManager.ACQUIRE_CAUSES_WAKEUP | PowerManager.FULL_WAKE_LOCK, "Unlock screen by shake");
+        PowerManager.WakeLock wl = pm.newWakeLock(PowerManager.ACQUIRE_CAUSES_WAKEUP | PowerManager.FULL_WAKE_LOCK, "Unlock screen by shake");
         wl.acquire();
         wl.release();
     }

@@ -23,7 +23,7 @@ public class ScreenOnReceiver extends BroadcastReceiver {
         if (!intent.getAction().equals(Intent.ACTION_SCREEN_OFF)) return;
 
         Intent service = new Intent(context, UpdateService.class);
-        service.putExtra("screenOn", true);
+        service.putExtra("screenOff", true);
         context.startService(service);
     }
 }

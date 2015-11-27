@@ -22,6 +22,7 @@ import android.util.Log;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -61,7 +62,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         preferences = getSharedPreferences(NAME_PREFERENCES, Context.MODE_PRIVATE);
         editor = preferences.edit();
 
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+        Button fab = (Button) findViewById(R.id.addButton);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -70,13 +71,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             }
         });
     }
-
-    Runnable runnable = new Runnable() {
-        @Override
-        public void run() {
-            Log.i("POWER", "Received success");
-        }
-    };
 
     @Override
     protected void onResume(){

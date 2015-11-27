@@ -15,6 +15,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.jjoe64.graphview.GraphView;
+import com.jjoe64.graphview.GridLabelRenderer;
 import com.jjoe64.graphview.series.DataPoint;
 import com.jjoe64.graphview.series.LineGraphSeries;
 
@@ -71,6 +72,10 @@ public class AddActivity extends Activity implements SensorEventListener {
         graphView.getViewport().setMaxY(20);
         graphView.getViewport().setMinX(0);
         graphView.getViewport().setMaxX(100);
+        graphView.getGridLabelRenderer().setGridStyle(GridLabelRenderer.GridStyle.NONE);
+        graphView.getGridLabelRenderer().setHorizontalLabelsVisible(false);
+        graphView.getGridLabelRenderer().setVerticalLabelsVisible(false);
+        graphView.getGridLabelRenderer().setPadding(0);
 
         series = new LineGraphSeries<>(Graph.generateDataForSeries(points));
         series.setColor(Color.BLACK);
@@ -213,7 +218,6 @@ public class AddActivity extends Activity implements SensorEventListener {
                 int result = liveGraphs.get(i).get(j).addPoint(point);
 
                 if (result == LiveGraph.GRAPHS_EQUAL || result == LiveGraph.GRAPHS_NOT_EQUAL){
-                    Log.i("GRAPH", result + "  peaks: " + liveGraphs.get(0).get(0).numPeaks); // Logs, 80% unnecessary
                     // If LiveGraph isn't equal to it's default remove it from 'watch list'
                     liveGraphs.get(i).remove(j);
                     j--;
