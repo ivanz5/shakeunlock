@@ -1,10 +1,12 @@
 package com.ivanzhur.shakeunlock;
 
+import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -26,17 +28,24 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.jjoe64.graphview.GraphView;
+import com.jjoe64.graphview.GridLabelRenderer;
+import com.jjoe64.graphview.series.DataPoint;
+import com.jjoe64.graphview.series.LineGraphSeries;
+
 import java.util.ArrayList;
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity implements SensorEventListener {
+public class MainActivity extends Activity implements SensorEventListener {
 
     SensorManager sensorManager;
     Sensor accelerometer;
-    TextView accTextView;
+    GraphView graphView;
     long lastTime = 0;
     boolean logging = false;
-    List<Double> vals;
+    List<GraphPoint> graphPoints;
+    LineGraphSeries<DataPoint> series;
+    final int maxPointsOnGraph = 100;
 
     static final String NAME_PREFERENCES = "com.ivanzhur.shakeunlock.sharedpreferences";
     static SharedPreferences preferences;
@@ -50,37 +59,44 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        accTextView = (TextView)findViewById(R.id.accTextView);
-
-        setSupportActionBar(toolbar);
-
         sensorManager = (SensorManager)getSystemService(Context.SENSOR_SERVICE);
         accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
-        sensorManager.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_GAME);
 
         preferences = getSharedPreferences(NAME_PREFERENCES, Context.MODE_PRIVATE);
         editor = preferences.edit();
 
-        Button fab = (Button) findViewById(R.id.addButton);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Intent intent = new Intent(getApplicationContext(), AddActivity.class);
-                startActivity(intent);
-            }
-        });
+        graphView = (GraphView)findViewById(R.id.graphMain);
+        graphView.getViewport().setYAxisBoundsManual(true);
+        graphView.getViewport().setXAxisBoundsManual(true);
+        graphView.getViewport().setMinY(-4);
+        graphView.getViewport().setMaxY(24);
+        graphView.getViewport().setMinX(0);
+        graphView.getViewport().setMaxX(maxPointsOnGraph);
+        graphView.getGridLabelRenderer().setGridStyle(GridLabelRenderer.GridStyle.NONE);
+        //graphView.getGridLabelRenderer().setHorizontalLabelsVisible(false);
+        //graphView.getGridLabelRenderer().setVerticalLabelsVisible(false);
+        graphView.getGridLabelRenderer().setPadding(0);
+
+        series = new LineGraphSeries<>();
+        series.setColor(Color.BLACK);
+
+        graphView.removeAllSeries();
+        graphView.addSeries(series);
+        graphPoints = new ArrayList<>();
     }
 
     @Override
     protected void onResume(){
         super.onResume();
-        /*IntentFilter filter = new IntentFilter(Intent.ACTION_SCREEN_ON);
-        BroadcastReceiver receiver = new ScreenOnReceiver();
-        registerReceiver(receiver, filter);
-        Log.i(TAG, "ScreenOnReceiver registered");*/
+        sensorManager.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_GAME);
         Intent service = new Intent(this, UpdateService.class);
         startService(service);
+    }
+
+    @Override
+    protected void onStop(){
+        super.onStop();
+        sensorManager.unregisterListener(this);
     }
 
     @Override
@@ -90,10 +106,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     @Override
     public void onSensorChanged(SensorEvent event) {
-        long currentTime = System.currentTimeMillis();
-        if (currentTime - lastTime < 100) return;
-        lastTime = currentTime;
-
         Sensor sensor = event.sensor;
 
         if (sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
@@ -102,10 +114,21 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             float z = event.values[2];
             double sum = Math.sqrt(x*x+y*y+z*z);
             sum = Math.round(sum*100)/100.0;
-            accTextView.setText(x+"\n"+y+"\n"+z+"\n"+sum);
 
-            if (vals!=null) vals.add(sum);
-            if (logging) Log.v("SENSOR_VALUES", "x: " + x + " y: " + y + " z: " + z + "   sum: " + sum);
+            graphPoints.add(new GraphPoint(sum, x, y, z));
+
+            int size = graphPoints.size();
+            if (size > 1){
+                GraphPoint mean = new GraphPoint((graphPoints.get(size-2).value + graphPoints.get(size-1).value)/2, x,y,z);
+                graphPoints.add(graphPoints.size()-1, mean);
+            }
+
+            if (size > maxPointsOnGraph){
+                graphPoints.remove(0);
+                graphPoints.remove(0);
+            }
+
+            series.resetData(Graph.generateDataForSeries(graphPoints));
         }
     }
 
@@ -114,25 +137,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_main, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        /*if (id == R.id.action_settings) {
-            return true;
-        }*/
-
-        return super.onOptionsItemSelected(item);
+    public void onChangeButtonClick(View view){
+        Intent intent = new Intent(getApplicationContext(), AddActivity.class);
+        startActivity(intent);
     }
 }
