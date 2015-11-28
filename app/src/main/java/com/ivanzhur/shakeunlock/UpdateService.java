@@ -34,6 +34,7 @@ public class UpdateService extends Service {
     long timeGraphOk[];
     boolean working;
     SensorEventListener listener;
+    BroadcastReceiver receiver;
     long lastUpdateTime, startTime;
 
     @Override
@@ -42,7 +43,7 @@ public class UpdateService extends Service {
 
         IntentFilter filter = new IntentFilter(Intent.ACTION_SCREEN_OFF);
         //filter.addAction(Intent.ACTION_SCREEN_ON);
-        BroadcastReceiver receiver = new ScreenOnReceiver();
+        receiver = new ScreenOnReceiver();
         registerReceiver(receiver, filter);
         Log.i(TAG, "ScreenOnReceiver registered from service");
 
@@ -62,7 +63,7 @@ public class UpdateService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId){
-        Log.d(TAG, "onStartCommand() called with: " + "intent = [" + intent + "], flags = [" + flags + "], startId = [" + startId + "]");
+        Log.i(TAG, "onStartCommand() called with: " + "intent = [" + intent + "], flags = [" + flags + "], startId = [" + startId + "]");
         if (intent == null || !intent.getBooleanExtra("screenOff", false)) return START_STICKY;
 
         working = true;
@@ -101,9 +102,10 @@ public class UpdateService extends Service {
 
     @Override
     public void onDestroy(){
-        super.onDestroy();
         sensorManager.unregisterListener(listener);
-        Log.d(TAG, "onDestroy() called with: " + "");
+        unregisterReceiver(receiver);
+        Log.i(TAG, "Service destroyed");
+        super.onDestroy();
     }
 
     @Nullable

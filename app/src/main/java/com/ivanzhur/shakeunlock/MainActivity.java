@@ -26,6 +26,7 @@ import java.util.List;
 
 public class MainActivity extends Activity implements SensorEventListener {
 
+    Intent accelerometerService;
     SensorManager sensorManager;
     Sensor accelerometer;
     GraphView graphView;
@@ -53,6 +54,7 @@ public class MainActivity extends Activity implements SensorEventListener {
         sensorManager = (SensorManager)getSystemService(Context.SENSOR_SERVICE);
         accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
 
+        accelerometerService = new Intent(this, UpdateService.class);
         preferences = getSharedPreferences(NAME_PREFERENCES, Context.MODE_PRIVATE);
         editor = preferences.edit();
 
@@ -100,8 +102,8 @@ public class MainActivity extends Activity implements SensorEventListener {
     protected void onResume(){
         super.onResume();
         sensorManager.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_GAME);
-        Intent service = new Intent(this, UpdateService.class);
-        startService(service);
+        if (preferences.getBoolean(SERVICE_ACTIVE, false))
+            startService(accelerometerService);
     }
 
     @Override
@@ -161,6 +163,8 @@ public class MainActivity extends Activity implements SensorEventListener {
             statusTextView.setTextColor(ContextCompat.getColor(this, R.color.red));
             startStopButton.setTextColor(ContextCompat.getColor(this, R.color.green));
             editor.putBoolean(SERVICE_ACTIVE, false);
+
+            stopService(accelerometerService);
         }
         else {
             statusTextView.setText(R.string.service_running);
@@ -168,6 +172,8 @@ public class MainActivity extends Activity implements SensorEventListener {
             statusTextView.setTextColor(ContextCompat.getColor(this, R.color.green));
             startStopButton.setTextColor(ContextCompat.getColor(this, R.color.red));
             editor.putBoolean(SERVICE_ACTIVE, true);
+
+            startService(accelerometerService);
         }
         editor.apply();
     }
