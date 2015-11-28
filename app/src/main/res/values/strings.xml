@@ -1,5 +1,10 @@
 <resources>
     <string name="app_name">Shake Unlock Pattern</string>
-    <string name="action_settings">Settings</string>
-    <string name="title_activity_add">AddActivity</string>
+    <string name="action_settings" translatable="false">Settings</string>
+    <string name="title_activity_add" translatable="false">AddActivity</string>
+    <string name="service_running">Service running</string>
+    <string name="service_stopped">Service stopped</string>
+    <string name="service_start">Start service</string>
+    <string name="service_stop">Stop service</string>
+    <string name="pattern_change">Change pattern</string>
 </resources>

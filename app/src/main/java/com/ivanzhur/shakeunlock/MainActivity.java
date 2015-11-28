@@ -1,10 +1,8 @@
 package com.ivanzhur.shakeunlock;
 
 import android.app.Activity;
-import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.hardware.Sensor;
@@ -12,21 +10,11 @@ import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Message;
-import android.os.PowerManager;
-import android.os.SystemClock;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
+import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.view.View;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.widget.Button;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.jjoe64.graphview.GraphView;
 import com.jjoe64.graphview.GridLabelRenderer;
@@ -41,16 +29,19 @@ public class MainActivity extends Activity implements SensorEventListener {
     SensorManager sensorManager;
     Sensor accelerometer;
     GraphView graphView;
-    long lastTime = 0;
-    boolean logging = false;
     List<GraphPoint> graphPoints;
     LineGraphSeries<DataPoint> series;
     final int maxPointsOnGraph = 100;
+    boolean isSavingDefaults = false;
+
+    TextView statusTextView;
+    Button startStopButton;
 
     static final String NAME_PREFERENCES = "com.ivanzhur.shakeunlock.sharedpreferences";
     static SharedPreferences preferences;
     static SharedPreferences.Editor editor;
     static final String DEFAULT[] = {"GRAPH_DEFAULT_1", "GRAPH_DEFAULT_2", "GRAPH_DEFAULT_3"};
+    static final String SERVICE_ACTIVE = "SERVICE_ACTIVE";
 
     final String TAG = "WAKE_TEST";
 
@@ -65,7 +56,21 @@ public class MainActivity extends Activity implements SensorEventListener {
         preferences = getSharedPreferences(NAME_PREFERENCES, Context.MODE_PRIVATE);
         editor = preferences.edit();
 
+        setUI();
+
+        series = new LineGraphSeries<>();
+        series.setColor(Color.BLACK);
+
+        graphView.removeAllSeries();
+        graphView.addSeries(series);
+        graphPoints = new ArrayList<>();
+    }
+
+    public void setUI(){
         graphView = (GraphView)findViewById(R.id.graphMain);
+        statusTextView = (TextView)findViewById(R.id.statusTextView);
+        startStopButton = (Button)findViewById(R.id.startStopButton);
+
         graphView.getViewport().setYAxisBoundsManual(true);
         graphView.getViewport().setXAxisBoundsManual(true);
         graphView.getViewport().setMinY(-4);
@@ -77,12 +82,18 @@ public class MainActivity extends Activity implements SensorEventListener {
         //graphView.getGridLabelRenderer().setVerticalLabelsVisible(false);
         graphView.getGridLabelRenderer().setPadding(0);
 
-        series = new LineGraphSeries<>();
-        series.setColor(Color.BLACK);
-
-        graphView.removeAllSeries();
-        graphView.addSeries(series);
-        graphPoints = new ArrayList<>();
+        if (preferences.getBoolean(SERVICE_ACTIVE, false)){
+            statusTextView.setText(R.string.service_running);
+            startStopButton.setText(R.string.service_stop);
+            statusTextView.setTextColor(ContextCompat.getColor(this, R.color.green));
+            startStopButton.setTextColor(ContextCompat.getColor(this, R.color.red));
+        }
+        else {
+            statusTextView.setText(R.string.service_stopped);
+            startStopButton.setText(R.string.service_start);
+            statusTextView.setTextColor(ContextCompat.getColor(this, R.color.red));
+            startStopButton.setTextColor(ContextCompat.getColor(this, R.color.green));
+        }
     }
 
     @Override
@@ -140,5 +151,24 @@ public class MainActivity extends Activity implements SensorEventListener {
     public void onChangeButtonClick(View view){
         Intent intent = new Intent(getApplicationContext(), AddActivity.class);
         startActivity(intent);
+    }
+
+    public void onStartStopClick(View view){
+        Log.i(TAG, "act: " + preferences.getBoolean(SERVICE_ACTIVE, false));
+        if (preferences.getBoolean(SERVICE_ACTIVE, false)){
+            statusTextView.setText(R.string.service_stopped);
+            startStopButton.setText(R.string.service_start);
+            statusTextView.setTextColor(ContextCompat.getColor(this, R.color.red));
+            startStopButton.setTextColor(ContextCompat.getColor(this, R.color.green));
+            editor.putBoolean(SERVICE_ACTIVE, false);
+        }
+        else {
+            statusTextView.setText(R.string.service_running);
+            startStopButton.setText(R.string.service_stop);
+            statusTextView.setTextColor(ContextCompat.getColor(this, R.color.green));
+            startStopButton.setTextColor(ContextCompat.getColor(this, R.color.red));
+            editor.putBoolean(SERVICE_ACTIVE, true);
+        }
+        editor.apply();
     }
 }
