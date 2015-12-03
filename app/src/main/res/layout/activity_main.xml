@@ -23,15 +23,33 @@
             android:textColor="@color/green"
             android:text="@string/service_running"/>
 
-        <com.jjoe64.graphview.helper.GraphViewXML
-            android:id="@+id/graphMain"
+        <FrameLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:layout_below="@+id/statusTextView"
-            android:layout_above="@+id/changeButton"
-            app:seriesData="0=0"
-            app:seriesType="line"
-            app:seriesColor="#ee0000" />
+            android:layout_above="@+id/changeButton">
+
+            <com.jjoe64.graphview.helper.GraphViewXML
+                android:id="@+id/graphMain"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:seriesData="0=0"
+                app:seriesType="line"
+                app:seriesColor="#ee0000" />
+
+            <TextView
+                android:id="@+id/instructionsTextView"
+                android:layout_width="300dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:fontFamily="sans-serif-light"
+                android:textColor="@color/black"
+                android:textSize="18sp"
+                android:text="@string/instructions_text"/>
+
+        </FrameLayout>
+
+
 
         <Button
             android:id="@+id/changeButton"

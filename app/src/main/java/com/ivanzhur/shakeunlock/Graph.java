@@ -1,7 +1,6 @@
 package com.ivanzhur.shakeunlock;
 
 import android.util.Log;
-import android.widget.Toast;
 
 import com.jjoe64.graphview.series.DataPoint;
 import com.jjoe64.graphview.series.LineGraphSeries;
@@ -27,6 +26,7 @@ public class Graph {
     static final double MIN_PEAKS_COMPARED_RATIO = 0.65;
     static final double MIN_PEAKS_OK_RATIO = 0.65;
     static final long MAX_TIME_OK_DIFF = 1000;
+    static final int MIN_MEASURE_TIME_DELTA = 25;
 
     // Create empty graph
     public Graph(){

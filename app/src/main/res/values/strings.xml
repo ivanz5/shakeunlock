@@ -7,4 +7,8 @@
     <string name="service_start">Start service</string>
     <string name="service_stop">Stop service</string>
     <string name="pattern_change">Change pattern</string>
+    <string name="instructions_text">Now you need to show your pattern 3 times.\n\n1. Press start button then start to shake the device.\n2. Press stop immediately after you completed the pattern. \n3. Do this for 3 times.</string>
+    <string name="instructions_start">START BY SHAKING THE DEVICE</string>
+    <string name="pattern_start">Start</string>
+    <string name="pattern_cancel">Cancel</string>
 </resources>

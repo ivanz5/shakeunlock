@@ -1,7 +1,5 @@
 package com.ivanzhur.shakeunlock;
 
-import android.app.Activity;
-import android.app.KeyguardManager;
 import android.app.Service;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -12,10 +10,8 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
-import android.os.Handler;
 import android.os.IBinder;
 import android.os.PowerManager;
-import android.os.SystemClock;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
@@ -70,7 +66,7 @@ public class UpdateService extends Service {
         listener = new SensorEventListener() {
             @Override
             public void onSensorChanged(SensorEvent sensorEvent) {
-                if (System.currentTimeMillis() - lastUpdateTime < 25) return; // FIXME: 25/11/2015 change 25 with constant variable
+                if (System.currentTimeMillis() - lastUpdateTime < Graph.MIN_MEASURE_TIME_DELTA) return;
                 lastUpdateTime = System.currentTimeMillis();
                 if (lastUpdateTime - startTime > MAX_SENSOR_WATCH_TIME){
                     patternTimeout();
