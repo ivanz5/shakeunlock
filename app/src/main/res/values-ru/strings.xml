@@ -6,4 +6,19 @@
     <string name="service_stopped">Сервис выключен</string>
     <string name="service_start">Включить сервис</string>
     <string name="service_stop">Выключить сервис</string>
+    <string name="instructions_start">НАЧТИТЕ ТРЯСТИ УСТРОЙСТВО</string>
+    <string name="instructions_text">Вам надо будет повторить жест 3 раза.\n\n1. Нажмите кнопку старт и начинайте трясти устройство\n2. Нажмите СТОП как только закончите жест.\n3. Сделайте так 3 раза.</string>
+    <string name="pattern_1">График 1</string>
+    <string name="pattern_2">График 2</string>
+    <string name="pattern_3">График 3</string>
+    <string name="pattern_cancel">Отмена</string>
+    <string name="pattern_dont_save">Не сохранять</string>
+    <string name="pattern_next">Дальше</string>
+    <string name="pattern_not_similar">Жесты не совпадают</string>
+    <string name="pattern_retry">Еще раз</string>
+    <string name="pattern_save">Сохранить</string>
+    <string name="pattern_saved">Сохранено</string>
+    <string name="pattern_similar">Жесты совпадают</string>
+    <string name="pattern_start">Старт</string>
+    <string name="pattern_stop">Стоп</string>
 </resources>
