@@ -21,7 +21,7 @@ import java.util.List;
 public class UpdateService extends Service {
 
     final String TAG = "WAKE_TEST";
-    final long MAX_SENSOR_WATCH_TIME = 10000;
+    final long MAX_SENSOR_WATCH_TIME = 86400000;
     SharedPreferences preferences;
     SensorManager sensorManager;
     Sensor accelerometer;
@@ -38,10 +38,10 @@ public class UpdateService extends Service {
         super.onCreate();
 
         IntentFilter filter = new IntentFilter(Intent.ACTION_SCREEN_OFF);
-        //filter.addAction(Intent.ACTION_SCREEN_ON);
-        receiver = new ScreenOnReceiver();
+        filter.addAction(Intent.ACTION_SCREEN_ON);
+        receiver = new ScreenOnOffReceiver();
         registerReceiver(receiver, filter);
-        Log.i(TAG, "ScreenOnReceiver registered from service");
+        Log.i(TAG, "onCreate: service started. ScreenOnOffReceiver registered.");
 
         preferences = getSharedPreferences(MainActivity.NAME_PREFERENCES, MODE_PRIVATE);
         sensorManager = (SensorManager)getSystemService(Context.SENSOR_SERVICE);
@@ -61,6 +61,8 @@ public class UpdateService extends Service {
     public int onStartCommand(Intent intent, int flags, int startId){
         Log.i(TAG, "onStartCommand() called with: " + "intent = [" + intent + "], flags = [" + flags + "], startId = [" + startId + "]");
         if (intent == null || !intent.getBooleanExtra("screenOff", false)) return START_STICKY;
+        Log.i(TAG, "Screen OFF");
+        Log.i(TAG, "onStartCommand: start monitoring accelerometer");
 
         working = true;
         listener = new SensorEventListener() {
@@ -72,8 +74,7 @@ public class UpdateService extends Service {
                     patternTimeout();
                     return;
                 }
-
-                Log.i(TAG, "sensor changed");
+                
                 Sensor sensor = sensorEvent.sensor;
                 if (sensor.getType() != Sensor.TYPE_ACCELEROMETER || !working) return;
 
@@ -92,7 +93,6 @@ public class UpdateService extends Service {
         sensorManager.registerListener(listener, accelerometer, SensorManager.SENSOR_DELAY_NORMAL);
         startTime = System.currentTimeMillis();
 
-        Log.i(TAG, "Screen OFF");
         return START_STICKY;
     }
 
@@ -100,7 +100,7 @@ public class UpdateService extends Service {
     public void onDestroy(){
         sensorManager.unregisterListener(listener);
         unregisterReceiver(receiver);
-        Log.i(TAG, "Service destroyed");
+        Log.i(TAG, "onDestroy: service destroyed");
         super.onDestroy();
     }
 

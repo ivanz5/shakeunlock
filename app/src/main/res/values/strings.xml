@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Shake Unlock Pattern</string>
+    <string name="app_name">Shake Unlock</string>
     <string name="action_settings" translatable="false">Settings</string>
     <string name="title_activity_add" translatable="false">AddActivity</string>
     <string name="service_running">Service running</string>

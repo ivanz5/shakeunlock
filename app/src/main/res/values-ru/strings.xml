@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Shake Unlock Pattern</string>
+    <string name="app_name">Shake Unlock</string>
     <string name="service_running">Сервис включен</string>
     <string name="pattern_change">Изменить шаблон</string>
     <string name="service_stopped">Сервис выключен</string>
