@@ -23,6 +23,7 @@ public class Graph {
     static final double MAX_NUM_PEAKS_DIFF_RATIO = 0.55;
     static final int MAX_PEAKS_SKIP_NUM = 3;
     static final double MAX_PEAKS_DIFF = 3.0;
+    static final double MAX_XYZ_DIFF = 6.0;
     static final double MIN_PEAKS_COMPARED_RATIO = 0.65;
     static final double MIN_PEAKS_OK_RATIO = 0.65;
     static final long MAX_TIME_OK_DIFF = 1000;

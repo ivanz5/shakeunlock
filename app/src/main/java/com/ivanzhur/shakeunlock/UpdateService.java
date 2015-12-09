@@ -124,7 +124,6 @@ public class UpdateService extends Service {
                 int result = liveGraphs.get(i).get(j).addPoint(point);
 
                 if (result == LiveGraph.GRAPHS_EQUAL || result == LiveGraph.GRAPHS_NOT_EQUAL){
-                    Log.i("GRAPH", result + "  peaks: " + liveGraphs.get(0).get(0).numPeaks); // Logs, 80% unnecessary
                     // If LiveGraph isn't equal to it's default remove it from 'watch list'
                     liveGraphs.get(i).remove(j);
                     j--;

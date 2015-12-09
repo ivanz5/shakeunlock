@@ -37,6 +37,17 @@ public class GraphPoint {
     public static boolean peaksEqual(Graph graph1, Graph graph2, int i1, int i2){
         double value1 = graph1.points.get(graph1.peaks.get(i1)).value;
         double value2 = graph2.points.get(graph2.peaks.get(i2)).value;
-        return Math.abs(value1-value2) <= Graph.MAX_PEAKS_DIFF;
+        double x1 = graph1.points.get(graph1.peaks.get(i1)).x;
+        double x2 = graph2.points.get(graph2.peaks.get(i2)).x;
+        double y1 = graph1.points.get(graph1.peaks.get(i1)).y;
+        double y2 = graph2.points.get(graph2.peaks.get(i2)).y;
+        double z1 = graph1.points.get(graph1.peaks.get(i1)).z;
+        double z2 = graph2.points.get(graph2.peaks.get(i2)).z;
+
+        return((Math.abs(value1-value2) <= Graph.MAX_XYZ_DIFF)
+                && (Math.abs(x1-x2) <= Graph.MAX_XYZ_DIFF)
+                && (Math.abs(y1-y2) <= Graph.MAX_XYZ_DIFF)
+                && (Math.abs(z1-z2) <= Graph.MAX_XYZ_DIFF)
+        );
     }
 }
