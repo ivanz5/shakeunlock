@@ -132,11 +132,12 @@ public class UpdateService extends Service {
                     // If no, continue monitoring
                     if (result == LiveGraph.GRAPHS_EQUAL) {
                         timeGraphOk[i] = System.currentTimeMillis();
-                        boolean allOk = true;
+                        //boolean allOk = true;
+                        int allOk = 3;
                         for (long time : timeGraphOk)
-                            if (timeGraphOk[i] - time > Graph.MAX_TIME_OK_DIFF) allOk = false;
+                            if (timeGraphOk[i] - time > Graph.MAX_TIME_OK_DIFF) allOk--;//allOk = false;
 
-                        if (allOk) patternRecognized();
+                        if (allOk >= 1) patternRecognized();
                     }
                 }
 
